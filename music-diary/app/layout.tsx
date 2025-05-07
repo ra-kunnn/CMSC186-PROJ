@@ -1,3 +1,4 @@
+import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from 'next/font/google'
 import "./globals.css"
@@ -16,6 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script src="/app.js" defer></script>
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   )
