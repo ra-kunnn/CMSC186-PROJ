@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { supabase } from '../../utils/supabase'
 import Link from "next/link"
 import Image from "next/image"
 import { Music, Headphones, MessageSquare, Loader2, Play, Pause, SkipBack, SkipForward } from "lucide-react"
@@ -45,7 +46,9 @@ export default function UserProfilePage() {
   const [currentlyPlaying, setCurrentlyPlaying] = useState<CurrentlyPlaying | null>(null)
   const [topTracks, setTopTracks] = useState<Track[]>([])
   const [recentTracks, setRecentTracks] = useState<Track[]>([])
-  const [promptOfTheDay] = useState("A song you like with a fruit in the title")
+  const [promptOfTheDay, setPromptOfTheDay] = useState<string | null>(null)
+  const [promptId, setPromptId] = useState<number | null>(null)
+
 
   // Fetch all data on component mount
   useEffect(() => {
@@ -75,6 +78,43 @@ export default function UserProfilePage() {
     }
 
     fetchAllData()
+
+    function getDayOfYear(): number {
+        const now = new Date()
+        const start = new Date(now.getFullYear(), 0, 0)
+        const diff = now.getTime() - start.getTime()
+        const oneDay = 1000 * 60 * 60 * 24
+        return Math.floor(diff / oneDay)
+      }
+
+      
+
+    async function fetchPrompt() {
+
+      var dayEquation = getDayOfYear() % 32 + 1
+      const date = new Date()
+      console.log(dayEquation + getDayOfYear() + "this is the day equation")
+
+      const { data, error } = await supabase
+        .from('Prompts')
+        .select('id, prompt_string')
+        .eq('id', dayEquation)
+        .single()
+
+      if (error) {
+        console.error('Error fetching prompt:', error)
+      } else if (data?.prompt_string) {
+        setPromptOfTheDay(data.prompt_string)
+        setPromptId(data.id)
+
+
+      }
+    }
+
+    fetchPrompt();
+
+
+
 
     // Set up polling for currently playing track (every 30 seconds)
     const pollingInterval = setInterval(() => {
@@ -303,6 +343,55 @@ export default function UserProfilePage() {
     localStorage.removeItem("refresh_token")
     window.location.href = "/"
   }
+ 
+  const [response, setResponse] = useState('');
+  const [userPrompts, setUserPrompts] = useState([]);
+
+
+useEffect(() => {
+  console.log("NO FUCKING CLUE" + user.name)
+  const fetchUserPrompts = async () => {
+    if (!user.name) return;
+
+    const { data, error } = await supabase
+      .from('User Prompts')
+      .select('*')
+      .eq('spotify_user', user.name); // Adjust field to match your schema
+
+    if (error) {
+      console.error('Error fetching prompts:', error);
+    } else {
+      setUserPrompts(data);
+    }
+  };
+
+  fetchUserPrompts();
+}, [user.name]);
+
+const saveResponse = async () => {
+  if (!response.trim()) return;
+console.log("hahahha"+ promptOfTheDay, promptId)
+  const { data, error } = await supabase
+    .from('User Prompts')
+    .insert([
+      {
+        'spotify_user': user.name,
+        prompt_id: promptId,
+        prompt_answers: response.trim(),
+        prompt_question: promptOfTheDay, 
+      },
+    ]);
+
+  if (error) {
+    console.error('Error saving response:', error);
+  } else {
+    setUserPrompts((prev) => [...prev, data[0]]);
+    setResponse('');
+  }
+};
+
+
+
 
   if (isLoading) {
     return (
@@ -421,25 +510,49 @@ export default function UserProfilePage() {
             </div>
           </div>
 
-          {/* potd */}
+          {/* Prompt of the Day */}
           <div className="md:col-span-3 lg:col-span-4">
             <div className="rounded-lg border border-violet-100 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-violet-900">Prompt of the Day</h2>
+              <h2 className="mb-4 text-lg font-semibold text-violet-900">
+                Prompt of the Day – {new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+              </h2>
+
               <div className="rounded-lg bg-violet-50 p-4">
                 <p className="text-violet-800">{promptOfTheDay}</p>
               </div>
+
               <div className="mt-4">
                 <textarea
                   className="w-full rounded-md border border-violet-200 p-3 text-sm focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
                   rows={3}
                   placeholder="Share your thoughts..."
-                ></textarea>
-                <button className="mt-2 rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700">
+                  value={response}
+                  onChange={(e) => setResponse(e.target.value)}
+                />
+                <button
+                  onClick={saveResponse}
+                  className="mt-2 rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+                >
                   Save to Diary
                 </button>
               </div>
+
+              {/* User's past entries */}
+              {userPrompts.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-md font-semibold text-violet-900">Your Past Entries:</h3>
+                  <ul className="space-y-2">
+                    {userPrompts.map((entry) => (
+                      <li key={entry.id} className="rounded-md bg-violet-100 p-3 text-sm text-violet-800">
+                        <strong>{entry.prompt_question}</strong>: {entry.prompt_answers}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
+
 
           {/* top tracks */}
           <div className="md:col-span-3 lg:col-span-1">
