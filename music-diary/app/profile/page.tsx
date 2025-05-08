@@ -303,6 +303,10 @@ export default function UserProfilePage() {
     localStorage.removeItem("refresh_token")
     window.location.href = "/"
   }
+  const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
+  const toggleCommentBox = (trackId) => {
+    setVisibleCommentBoxId((prev) => (prev === trackId ? null : trackId));
+  };
 
   if (isLoading) {
     return (
@@ -480,7 +484,7 @@ export default function UserProfilePage() {
               <h2 className="mb-4 text-lg font-semibold text-violet-900">Recent Activity</h2>
               {recentTracks.length > 0 ? (
                 <div className="space-y-4">
-                  {recentTracks.slice(0, 3).map((track) => (
+                  {recentTracks.slice(0, 5).map((track) => (
                     <div key={`activity-${track.id}-${track.playedAt}`} className="flex gap-3">
                       <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full">
                         <Image
@@ -500,11 +504,24 @@ export default function UserProfilePage() {
                           Listened to <span className="font-medium">{track.title}</span> by{" "}
                           <span className="font-medium">{track.artist}</span>
                         </p>
-                        <div className="mt-2 flex items-center gap-3">
-                          <button className="flex items-center gap-1 text-xs text-violet-600">
+                        <p className="mt-1 text-xs text-violet-300">
+                          Comments : <span className="font-medium"></span> 
+                        </p>
+                        <div className="mt-2 flex flex-col gap-2">
+                          <button
+                            className="flex items-center gap-1 text-xs text-violet-600"
+                            onClick={() => toggleCommentBox(track.id)}
+                          >
                             <MessageSquare className="h-3 w-3" />
                             <span>Comment</span>
                           </button>
+                          {visibleCommentBoxId === track.id && (
+                            <input
+                              type="text"
+                              placeholder="Write a comment..."
+                              className="w-full rounded border border-violet-300 p-1 text-sm"
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
