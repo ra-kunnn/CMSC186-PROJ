@@ -21,7 +21,7 @@ export default function LandingPage() {
               my music diary.
             </h1>
             <p className="max-w-[700px] text-lg text-violet-700 md:text-xl">
-              catchphrase idfk
+              your music thoughts all in one site!
             </p>
           </div>
 
@@ -50,9 +50,9 @@ export default function LandingPage() {
                   <circle cx="18" cy="16" r="3" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-violet-900">section 1</h3>
+              <h3 className="text-xl font-bold text-violet-900">Spotify Integration</h3>
               <p className="text-violet-700">
-                lorem ipsum dolor sit amet
+                Track your listening activity on Spotify!
               </p>
             </div>
 
@@ -74,9 +74,9 @@ export default function LandingPage() {
                   <circle cx="12" cy="12" r="10" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-violet-900">section 1</h3>
+              <h3 className="text-xl font-bold text-violet-900">Listening Activity</h3>
               <p className="text-violet-700">
-                lorem ipsum dolor sit amet
+                Keep a record of all the tracks you listened to.
               </p>
             </div>
 
@@ -100,9 +100,9 @@ export default function LandingPage() {
                   <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-violet-900">section 1</h3>
+              <h3 className="text-xl font-bold text-violet-900">Forum Section</h3>
               <p className="text-violet-700">
-                lorem ipsum dolor sit amet
+                Talk about what you like — or not like — about a song!
               </p>
             </div>
 
