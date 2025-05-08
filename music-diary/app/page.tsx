@@ -4,12 +4,14 @@ import SpotifyAuth from '@/components/spotifyAuthButton';
 export default function LandingPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-violet-50 to-white">
+      {/*
       <header className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-2">
           <Music className="h-8 w-8 text-violet-600" />
           <span className="text-xl font-bold text-violet-900">my music diary.</span>
         </div>
       </header>
+      */}
 
       <main className="flex-1">
         <section className="container mx-auto flex flex-col items-center justify-center space-y-10 px-4 py-20 text-center md:px-6 md:py-32">
