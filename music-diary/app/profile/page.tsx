@@ -34,6 +34,13 @@ interface CurrentlyPlaying {
   isPlaying: boolean
 }
 
+interface Comments{
+  comment_id: number;
+  track_id: string;
+  comment: string;
+  username: string;
+}
+
 export default function UserProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -48,8 +55,60 @@ export default function UserProfilePage() {
   const [recentTracks, setRecentTracks] = useState<Track[]>([])
   const [promptOfTheDay, setPromptOfTheDay] = useState<string | null>(null)
   const [promptId, setPromptId] = useState<number | null>(null)
+  const [commentInputs, setCommentInputs] = useState<{ [trackId: string]: string }>({});
+  const [comments, setComments] = useState<Comments[]>([])
+  const [commentText, setCommentText] = useState("")
+  const fetchComments = async () => {
+    const { data, error } = await supabase
+      .from('Comments')
+      .select('comment_id, track_id, comment, username');
 
-
+    if (error) {
+      console.error("Error fetching comments:", error);
+    } else {
+      setComments(data); // Set the fetched comments
+    }
+  };
+  const handleCommentSubmit = async (e: React.KeyboardEvent<HTMLTextAreaElement>, trackId: string) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      console.log(commentText.trim())
+      console.log(trackId)
+      console.log(user.username)
+      if (!commentText.trim()) return
+  
+      const { error } = await supabase.from('Comments').insert([
+        {
+          track_id: trackId,
+          comment: commentText.trim(),
+          username: user.username,
+        },
+      ])
+  
+      if (error) {
+        console.error("Error saving comment:")
+        console.log("Message:", error.message)
+        console.log("Details:", error.details)
+        console.log("Hint:", error.hint)
+        console.log("Code:", error.code)
+      } else {
+        setCommentText("")
+  
+        // Option 2: Re-fetch comments to reflect new data
+        const { data: updatedComments, error: fetchError } = await supabase
+          .from('Comments')
+          .select('comment_id, track_id, comment, username')
+          .eq('username', user.username)
+  
+        if (fetchError) {
+          console.error("Error fetching updated comments:", fetchError)
+        } else {
+          setComments(updatedComments)
+        }
+      }
+    }
+  }
+  
   // Fetch all data on component mount
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token")
@@ -110,9 +169,10 @@ export default function UserProfilePage() {
 
       }
     }
-
+    
+    
     fetchPrompt();
-
+    fetchComments();
 
 
 
@@ -283,7 +343,6 @@ export default function UserProfilePage() {
       console.error("Error controlling playback:", error)
     }
   }
-
   // Handle skip to next track
   const handleSkipNext = async () => {
     const accessToken = localStorage.getItem("access_token")
@@ -343,12 +402,7 @@ export default function UserProfilePage() {
     localStorage.removeItem("refresh_token")
     window.location.href = "/"
   }
-<<<<<<< HEAD
-  const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
-  const toggleCommentBox = (trackId) => {
-    setVisibleCommentBoxId((prev) => (prev === trackId ? null : trackId));
-  };
-=======
+  
  
   const [response, setResponse] = useState('');
   const [userPrompts, setUserPrompts] = useState([]);
@@ -395,10 +449,12 @@ console.log("hahahha"+ promptOfTheDay, promptId)
     window.location.reload();
   }
 };
+const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
+      const toggleCommentBox = (trackId) => {
+      setVisibleCommentBoxId((prev) => (prev === trackId ? null : trackId));
+    };
 
 
-
->>>>>>> prompt_test
 
   if (isLoading) {
     return (
@@ -621,24 +677,40 @@ console.log("hahahha"+ promptOfTheDay, promptId)
                           <span className="font-medium">{track.artist}</span>
                         </p>
                         <p className="mt-1 text-xs text-violet-300">
-                          Comments : <span className="font-medium"></span> 
+                          Comments:  
+                          <span className="font-medium">
+                            {/* Display all comments for the track within the same <span> */}
+                            {comments
+                              .filter((comment) => comment.track_id === track.id && comment.username === user.username)
+                              .map((filteredComment, index) => (
+                                <span key={filteredComment.comment_id}>
+                                  {filteredComment.comment}
+                                  {index < comments.filter((comment) => comment.track_id === track.id && comment.username === user.username).length - 1 && ", "}
+                                </span>
+                              ))}
+                          </span>
                         </p>
                         <div className="mt-2 flex flex-col gap-2">
-                          <button
-                            className="flex items-center gap-1 text-xs text-violet-600"
-                            onClick={() => toggleCommentBox(track.id)}
-                          >
-                            <MessageSquare className="h-3 w-3" />
-                            <span>Comment</span>
-                          </button>
-                          {visibleCommentBoxId === track.id && (
-                            <input
-                              type="text"
-                              placeholder="Write a comment..."
-                              className="w-full rounded border border-violet-300 p-1 text-sm"
-                            />
-                          )}
-                        </div>
+                        <button
+                          className="flex items-center gap-1 text-xs text-violet-600"
+                          onClick={() => toggleCommentBox(track.id)}
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          <span>Comment</span>
+                        </button>
+
+                        {visibleCommentBoxId === track.id && (
+                          <textarea
+                            rows={2}
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            onKeyDown={(e) => handleCommentSubmit(e, track.id)}
+                            placeholder="Write a comment and press Enter to submit..."
+                            className="w-full rounded border border-violet-300 p-1 text-sm"
+                          />
+                        )}
+                      </div>
+
                       </div>
                     </div>
                   ))}
