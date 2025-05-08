@@ -380,13 +380,13 @@ console.log("hahahha"+ promptOfTheDay, promptId)
         prompt_answers: response.trim(),
         prompt_question: promptOfTheDay, 
       },
-    ]);
+    ]).select();
 
   if (error) {
     console.error('Error saving response:', error);
   } else {
-    setUserPrompts((prev) => [...prev, data[0]]);
     setResponse('');
+    window.location.reload();
   }
 };
 
