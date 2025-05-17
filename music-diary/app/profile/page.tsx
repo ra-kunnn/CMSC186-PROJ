@@ -402,10 +402,11 @@ export default function UserProfilePage() {
  
   const [response, setResponse] = useState('');
   const [userPrompts, setUserPrompts] = useState([]);
+  const [userPromptsToday, setUserPromptsToday] = useState([]);
 
 
 useEffect(() => {
-  console.log("NO FUCKING CLUE" + user.name)
+  console.log("NO  CLUE" + user.name)
   const fetchUserPrompts = async () => {
     if (!user.name) return;
 
@@ -423,6 +424,28 @@ useEffect(() => {
 
   fetchUserPrompts();
 }, [user.name]);
+
+useEffect(() => {
+  const fetchUserPromptsToday = async () => {
+    const now = new Date();
+    const startOfDay = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+    const endOfDay = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+
+    const { data, error } = await supabase
+      .from('User Prompts')
+      .select('*')
+      .gte('date', startOfDay)
+      .lt('date', endOfDay);
+
+    if (error) {
+      console.error('Error fetching today\'s prompts:', error);
+    } else {
+      setUserPromptsToday(data);
+    }
+  };
+
+  fetchUserPromptsToday();
+}, []);
 
 const saveResponse = async () => {
   if (!response.trim()) return;
@@ -595,6 +618,19 @@ const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
                   Save to Diary
                 </button>
               </div>
+              {/* Todays entries */}
+              {userPromptsToday.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-md font-semibold text-violet-900"> Entries Today:</h3>
+                  <ul className="space-y-2">
+                    {userPromptsToday.map((entry) => (
+                      <li key={entry.id} className="rounded-md bg-violet-100 p-3 text-sm text-violet-800">(<strong>{entry.spotify_user}</strong>) 
+                        <strong>{entry.prompt_question}</strong>: {entry.prompt_answers} - {new Date(entry.date).toLocaleDateString()}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* User's past entries */}
               {userPrompts.length > 0 && (
@@ -602,7 +638,7 @@ const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
                   <h3 className="mb-2 text-md font-semibold text-violet-900">Your Past Entries:</h3>
                   <ul className="space-y-2">
                     {userPrompts.map((entry) => (
-                      <li key={entry.id} className="rounded-md bg-violet-100 p-3 text-sm text-violet-800">
+                      <li key={entry.id} className="rounded-md bg-violet-100 p-3 text-sm text-violet-800">(<strong>{entry.spotify_user}</strong>) 
                         <strong>{entry.prompt_question}</strong>: {entry.prompt_answers} - {new Date(entry.date).toLocaleDateString()}
                       </li>
                     ))}
