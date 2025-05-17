@@ -612,42 +612,8 @@ const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
             </div>
           </div>
 
-
-          {/* top tracks */}
-          <div className="md:col-span-3 lg:col-span-1">
-            <div className="rounded-lg border border-violet-100 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold text-violet-900">Your Top 5 Tracks</h2>
-              {topTracks.length > 0 ? (
-                <div className="space-y-3">
-                  {topTracks.map((track) => (
-                    <div key={track.id} className="flex items-center gap-3">
-                      <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-md">
-                        <Image
-                          src={track.albumCover || "/placeholder.svg"}
-                          alt={track.album}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="truncate font-medium text-violet-900">{track.title}</h3>
-                        <p className="truncate text-xs text-violet-700">{track.artist}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-4 text-center">
-                  <p className="text-violet-700">No top tracks found</p>
-                  <p className="text-sm text-violet-500">Listen to more music to see your top tracks</p>
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* recent activity */}
-          <div className="md:col-span-3 lg:col-span-3">
+          <div className="md:col-span-3 lg:col-span-4">
             <div className="rounded-lg border border-violet-100 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold text-violet-900">Recent Activity</h2>
               {recentTracks.length > 0 ? (
