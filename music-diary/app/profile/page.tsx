@@ -58,56 +58,52 @@ export default function UserProfilePage() {
   const [commentInputs, setCommentInputs] = useState<{ [trackId: string]: string }>({});
   const [comments, setComments] = useState<Comments[]>([])
   const [commentText, setCommentText] = useState("")
-  const fetchComments = async () => {
+  async function fetchComments() {
     const { data, error } = await supabase
       .from('Comments')
-      .select('comment_id, track_id, comment, username');
+      .select('comment_id, track_id, comment, username, name');
 
     if (error) {
-      console.error("Error fetching comments:", error);
+      console.error('Error fetching comments:', error);
     } else {
-      setComments(data); // Set the fetched comments
+      setComments(data);
     }
-  };
+  }
+
   const handleCommentSubmit = async (e: React.KeyboardEvent<HTMLTextAreaElement>, trackId: string) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      console.log(commentText.trim())
-      console.log(trackId)
-      console.log(user.username)
-      if (!commentText.trim()) return
-  
-      const { error } = await supabase.from('Comments').insert([
-        {
-          track_id: trackId,
-          comment: commentText.trim(),
-          username: user.username,
-        },
-      ])
-  
-      if (error) {
-        console.error("Error saving comment:")
-        console.log("Message:", error.message)
-        console.log("Details:", error.details)
-        console.log("Hint:", error.hint)
-        console.log("Code:", error.code)
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+
+    if (!commentText.trim()) return;
+
+    const { error } = await supabase.from('Comments').insert([
+      {
+        track_id: trackId,
+        comment: commentText.trim(),
+        username: user.username, // This is the unique user ID
+        name: user.name,         // This is the display name
+      },
+    ]);
+
+    if (error) {
+      console.error("Error saving comment:", error);
+    } else {
+      setCommentText("");
+
+      // Re-fetch all comments
+      const { data: updatedComments, error: fetchError } = await supabase
+        .from('Comments')
+        .select('comment_id, track_id, comment, username, name');
+
+      if (fetchError) {
+        console.error("Error fetching updated comments:", fetchError);
       } else {
-        setCommentText("")
-  
-        // Option 2: Re-fetch comments to reflect new data
-        const { data: updatedComments, error: fetchError } = await supabase
-          .from('Comments')
-          .select('comment_id, track_id, comment, username')
-          .eq('username', user.username)
-  
-        if (fetchError) {
-          console.error("Error fetching updated comments:", fetchError)
-        } else {
-          setComments(updatedComments)
-        }
+        setComments(updatedComments);
       }
     }
   }
+};
+
   
   // Fetch all data on component mount
   useEffect(() => {
@@ -676,20 +672,17 @@ const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
                           Listened to <span className="font-medium">{track.title}</span> by{" "}
                           <span className="font-medium">{track.artist}</span>
                         </p>
-                        <p className="mt-1 text-xs text-violet-300">
-                          Comments:  
-                          <span className="font-medium">
-                            {/* Display all comments for the track within the same <span> */}
-                            {comments
-                              .filter((comment) => comment.track_id === track.id && comment.username === user.username)
-                              .map((filteredComment, index) => (
-                                <span key={filteredComment.comment_id}>
-                                  {filteredComment.comment}
-                                  {index < comments.filter((comment) => comment.track_id === track.id && comment.username === user.username).length - 1 && ", "}
-                                </span>
-                              ))}
-                          </span>
-                        </p>
+                        <p className="mt-1 text-xs text-violet-300">Comments:</p>
+                        <ul className="pl-4 mt-1 space-y-1 text-xs text-violet-700 list-disc">
+                          {comments
+                            .filter((comment) => comment.track_id === track.id)
+                            .map((comment) => (
+                              <li key={comment.comment_id}>
+                                <span className="font-medium text-violet-600">{comment.name}</span>: {comment.comment}
+                              </li>
+                            ))}
+                        </ul>
+
                         <div className="mt-2 flex flex-col gap-2">
                         <button
                           className="flex items-center gap-1 text-xs text-violet-600"
