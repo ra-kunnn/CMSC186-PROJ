@@ -603,7 +603,7 @@ const [visibleCommentBoxId, setVisibleCommentBoxId] = useState(null);
                   <ul className="space-y-2">
                     {userPrompts.map((entry) => (
                       <li key={entry.id} className="rounded-md bg-violet-100 p-3 text-sm text-violet-800">
-                        <strong>{entry.prompt_question}</strong>: {entry.prompt_answers}
+                        <strong>{entry.prompt_question}</strong>: {entry.prompt_answers} - {new Date(entry.date).toLocaleDateString()}
                       </li>
                     ))}
                   </ul>
